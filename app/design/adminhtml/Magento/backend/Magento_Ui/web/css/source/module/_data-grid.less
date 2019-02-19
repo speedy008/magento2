@@ -403,7 +403,7 @@ body._in-resize {
     .data-grid-checkbox-cell {
         overflow: hidden;
         padding: 0;
-        vertical-align: top;
+        vertical-align: middle;
         width: @control-checkbox-radio__size + @data-grid-checkbox-cell-inner__padding-horizontal * 2;
 
         &:hover {
@@ -1090,8 +1090,10 @@ body._in-resize {
     }
 
     .data-grid-checkbox-cell-inner {
+        display: unset;
         margin: @data-grid-checkbox-cell-inner__padding-top @data-grid-checkbox-cell-inner__padding-horizontal .9rem;
         padding: 0;
+        text-align: center;
     }
 
     //  Content Hierarchy specific
