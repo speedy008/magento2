@@ -715,7 +715,7 @@ class Type extends \Magento\Catalog\Model\Product\Type\AbstractType
 
                 $selections = $this->mergeSelectionsWithOptions($options, $selections);
             }
-            if (count($selections) > 0 || !$isStrictProcessMode) {
+            if ((is_array($selections) && count($selections) > 0) || !$isStrictProcessMode) {
                 $uniqueKey = [$product->getId()];
                 $selectionIds = [];
                 $qtys = $buyRequest->getBundleOptionQty();
@@ -741,7 +741,7 @@ class Type extends \Magento\Catalog\Model\Product\Type\AbstractType
                     $price = $product->getPriceModel()
                         ->getSelectionFinalTotalPrice($product, $selection, 0, $qty);
                     $attributes = [
-                        'price' => $this->priceCurrency->convert($price),
+                        'price' => $price,
                         'qty' => $qty,
                         'option_label' => $selection->getOption()
                             ->getTitle(),
@@ -1328,8 +1328,9 @@ class Type extends \Magento\Catalog\Model\Product\Type\AbstractType
     protected function mergeSelectionsWithOptions($options, $selections)
     {
         foreach ($options as $option) {
-            if ($option->getRequired() && count($option->getSelections()) == 1) {
-                $selections = array_merge($selections, $option->getSelections());
+            $optionSelections = $option->getSelections();
+            if ($option->getRequired() && is_array($optionSelections) && count($optionSelections) == 1) {
+                $selections = array_merge($selections, $optionSelections);
             } else {
                 $selections = [];
                 break;

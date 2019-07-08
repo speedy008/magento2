@@ -210,20 +210,22 @@ class Uploader
         $this->_result = false;
         $destinationFile = $destinationFolder;
         $fileName = isset($newFileName) ? $newFileName : $this->_file['name'];
-        $fileName = self::getCorrectFileName($fileName);
+        $fileName = static::getCorrectFileName($fileName);
         if ($this->_enableFilesDispersion) {
             $fileName = $this->correctFileNameCase($fileName);
             $this->setAllowCreateFolders(true);
-            $this->_dispretionPath = self::getDispersionPath($fileName);
+            $this->_dispretionPath = static::getDispersionPath($fileName);
             $destinationFile .= $this->_dispretionPath;
             $this->_createDestinationFolder($destinationFile);
         }
 
         if ($this->_allowRenameFiles) {
-            $fileName = self::getNewFileName(self::_addDirSeparator($destinationFile) . $fileName);
+            $fileName = static::getNewFileName(
+                static::_addDirSeparator($destinationFile) . $fileName
+            );
         }
 
-        $destinationFile = self::_addDirSeparator($destinationFile) . $fileName;
+        $destinationFile = static::_addDirSeparator($destinationFile) . $fileName;
 
         try {
             $this->_result = $this->_moveFile($this->_file['tmp_name'], $destinationFile);
@@ -547,7 +549,7 @@ class Uploader
 
             preg_match("/^(.*?)\[(.*?)\]$/", $fileId, $file);
 
-            if (count($file) > 0 && count($file[0]) > 0 && count($file[1]) > 0) {
+            if (is_array($file) && count($file) > 0 && !empty($file[0]) && !empty($file[1])) {
                 array_shift($file);
                 $this->_uploadType = self::MULTIPLE_STYLE;
 
@@ -560,7 +562,7 @@ class Uploader
 
                 $fileAttributes = $tmpVar;
                 $this->_file = $fileAttributes;
-            } elseif (count($fileId) > 0 && isset($_FILES[$fileId])) {
+            } elseif (!empty($fileId) && isset($_FILES[$fileId])) {
                 $this->_uploadType = self::SINGLE_STYLE;
                 $this->_file = $_FILES[$fileId];
             } elseif ($fileId == '') {

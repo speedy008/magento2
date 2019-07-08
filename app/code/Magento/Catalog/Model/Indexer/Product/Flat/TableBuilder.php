@@ -35,13 +35,6 @@ class TableBuilder
     private $tableBuilderFactory;
 
     /**
-     * Check whether builder was executed
-     *
-     * @var bool
-     */
-    protected $_isExecuted = false;
-
-    /**
      * Constructor
      *
      * @param \Magento\Catalog\Helper\Product\Flat\Indexer $productIndexerHelper
@@ -70,9 +63,6 @@ class TableBuilder
      */
     public function build($storeId, $changedIds, $valueFieldSuffix)
     {
-        if ($this->_isExecuted) {
-            return;
-        }
         $entityTableName = $this->_productIndexerHelper->getTable('catalog_product_entity');
         $attributes = $this->_productIndexerHelper->getAttributes();
         $eavAttributes = $this->_productIndexerHelper->getTablesStructure($attributes);
@@ -117,7 +107,6 @@ class TableBuilder
             //Fill temporary tables with attributes grouped by it type
             $this->_fillTemporaryTable($tableName, $columns, $changedIds, $valueFieldSuffix, $storeId);
         }
-        $this->_isExecuted = true;
     }
 
     /**
@@ -300,12 +289,16 @@ class TableBuilder
 
                 /** @var $attribute \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
                 foreach ($columnsList as $columnName => $attribute) {
-                    $countTableName = 't' . $iterationNum++;
+                    $countTableName = 't' . ($iterationNum++);
                     $joinCondition = sprintf(
-                        'e.%3$s = %1$s.%3$s AND %1$s.attribute_id = %2$d AND %1$s.store_id = 0',
+                        'e.%3$s = %1$s.%3$s' .
+                        ' AND %1$s.attribute_id = %2$d' .
+                        ' AND (%1$s.store_id = %4$d' .
+                        ' OR %1$s.store_id = 0)',
                         $countTableName,
                         $attribute->getId(),
-                        $metadata->getLinkField()
+                        $metadata->getLinkField(),
+                        $storeId
                     );
 
                     $select->joinLeft(
@@ -319,9 +312,10 @@ class TableBuilder
                         $columnValueName = $attributeCode . $valueFieldSuffix;
                         if (isset($flatColumns[$columnValueName])) {
                             $valueJoinCondition = sprintf(
-                                'e.%1$s = %2$s.option_id AND %2$s.store_id = 0',
+                                'e.%1$s = %2$s.option_id AND (%2$s.store_id = %3$d OR %2$s.store_id = 0)',
                                 $attributeCode,
-                                $countTableName
+                                $countTableName,
+                                $storeId
                             );
                             $selectValue->joinLeft(
                                 [
